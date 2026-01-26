@@ -20,7 +20,7 @@ MODEL_PATH = "runs/classify/train4/weights/best.pt"
 TEST_DIR = "Data/test"
 
 # -----------------------------
-# LOAD MODEL
+# LOAD MODEL fi
 # -----------------------------
 model = YOLO(MODEL_PATH)
 
