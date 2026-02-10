@@ -71,7 +71,9 @@ def predict_mask(image, threshold=0.5):
 # TEST BLOCK (OPTIONAL)
 # --------------------------------------------------
 if __name__ == "__main__":
-    img_path = "sample.jpg"  # replace with test image
+    # img_path = "sample.jpg"  # replace with test image
+    img_path = "aircrafts blades/test/images/1_jpg.rf.ffcd90da8b1551b996b4eb6df919ad89.jpg"
+
     image = cv2.imread(img_path)
 
     if image is None:

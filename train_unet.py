@@ -6,9 +6,16 @@ from dataset import CrackDataset
 from model import UNet
 
 # =====================
-# Device
+# DEVICE (CUDA / MPS / CPU)
 # =====================
-device = "cuda" if torch.cuda.is_available() else "cpu"
+if torch.backends.mps.is_available():
+    device = "mps"
+elif torch.cuda.is_available():
+    device = "cuda"
+else:
+    device = "cpu"
+
+print(f"🖥️ Using device: {device}")
 
 # =====================
 # Dice Loss & Metric
@@ -24,7 +31,7 @@ def dice_loss(preds, targets, smooth=1e-6):
 
 def dice_score(preds, targets, smooth=1e-6):
     preds = torch.sigmoid(preds)
-    preds = (preds > 0.3).float()   # 🔥 LOWER THRESHOLD
+    preds = (preds > 0.3).float()   # lower threshold helps thin cracks
 
     intersection = (preds * targets).sum()
     union = preds.sum() + targets.sum()
@@ -32,30 +39,43 @@ def dice_score(preds, targets, smooth=1e-6):
     return (2 * intersection + smooth) / (union + smooth)
 
 # =====================
-# Datasets
+# DATASETS (UPDATED PATHS)
 # =====================
 train_dataset = CrackDataset(
-    "unet_data/images/train/crack",
-    "unet_data/masks/train/crack"
+    "unet_data/images/train",
+    "unet_data/masks/train"
 )
 
 val_dataset = CrackDataset(
-    "unet_data/images/train/crack",
-    "unet_data/masks/train/crack"
+    "unet_data/images/train",
+    "unet_data/masks/train"
 )
 
-train_loader = DataLoader(train_dataset, batch_size=4, shuffle=True)
-val_loader = DataLoader(val_dataset, batch_size=4, shuffle=False)
+train_loader = DataLoader(
+    train_dataset,
+    batch_size=4,
+    shuffle=True,
+    num_workers=0,   # IMPORTANT for macOS
+    pin_memory=False
+)
+
+val_loader = DataLoader(
+    val_dataset,
+    batch_size=4,
+    shuffle=False,
+    num_workers=0,
+    pin_memory=False
+)
 
 # =====================
-# Model
+# MODEL
 # =====================
 model = UNet().to(device)
 criterion = dice_loss
 optimizer = torch.optim.Adam(model.parameters(), lr=1e-4)
 
 # =====================
-# Training
+# TRAINING
 # =====================
 epochs = 20
 
@@ -64,7 +84,8 @@ for epoch in range(epochs):
     train_loss = 0
 
     for imgs, masks in train_loader:
-        imgs, masks = imgs.to(device), masks.to(device)
+        imgs = imgs.to(device)
+        masks = masks.to(device)
 
         preds = model(imgs)
         loss = criterion(preds, masks)
@@ -75,26 +96,30 @@ for epoch in range(epochs):
 
         train_loss += loss.item()
 
+    # -----------------
     # Validation
+    # -----------------
     model.eval()
     dice_total = 0
 
     with torch.no_grad():
         for imgs, masks in val_loader:
-            imgs, masks = imgs.to(device), masks.to(device)
+            imgs = imgs.to(device)
+            masks = masks.to(device)
+
             preds = model(imgs)
             dice_total += dice_score(preds, masks).item()
 
     avg_dice = dice_total / len(val_loader)
 
     print(
-        f"Epoch [{epoch+1}/{epochs}] "
-        f"Train Loss: {train_loss/len(train_loader):.4f} "
+        f"Epoch [{epoch+1}/{epochs}] | "
+        f"Train Loss: {train_loss/len(train_loader):.4f} | "
         f"Val Dice: {avg_dice:.4f}"
     )
 
 # =====================
-# Save model
+# SAVE MODEL
 # =====================
 torch.save(model.state_dict(), "unet_crack.pth")
-print("✅ Model saved")
+print("✅ Model saved as unet_crack.pth")

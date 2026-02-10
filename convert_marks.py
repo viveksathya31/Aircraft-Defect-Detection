@@ -1,29 +1,88 @@
-import os, json
+import os
+import cv2
 import numpy as np
-from PIL import Image, ImageDraw
 
-IMG_SIZE = (512, 512)
+# --------------------------------------------------
+# PATH SETUP (ROBUST, HANDLES SPACES)
+# --------------------------------------------------
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-json_dir = "unet_data/images/train/crack"
-mask_out = "unet_data/masks/train/crack"
+YOLO_TRAIN_DIR = os.path.join(
+    BASE_DIR, "aircrafts blades", "train"
+)
 
-os.makedirs(mask_out, exist_ok=True)
+IMAGES_DIR = os.path.join(YOLO_TRAIN_DIR, "images")
+LABELS_DIR = os.path.join(YOLO_TRAIN_DIR, "labels")
 
-for file in os.listdir(json_dir):
-    if not file.endswith(".json"):
+OUT_IMG_DIR = os.path.join(BASE_DIR, "unet_data", "images", "train")
+OUT_MASK_DIR = os.path.join(BASE_DIR, "unet_data", "masks", "train")
+
+os.makedirs(OUT_IMG_DIR, exist_ok=True)
+os.makedirs(OUT_MASK_DIR, exist_ok=True)
+
+print("📂 Reading images from:", IMAGES_DIR)
+
+# --------------------------------------------------
+# CONVERSION LOOP
+# --------------------------------------------------
+for img_name in os.listdir(IMAGES_DIR):
+
+    if not img_name.lower().endswith((".jpg", ".png", ".jpeg")):
         continue
 
-    with open(os.path.join(json_dir, file)) as f:
-        data = json.load(f)
+    img_path = os.path.join(IMAGES_DIR, img_name)
+    label_path = os.path.join(
+        LABELS_DIR, os.path.splitext(img_name)[0] + ".txt"
+    )
 
-    mask = Image.new("L", IMG_SIZE, 0)
-    draw = ImageDraw.Draw(mask)
+    image = cv2.imread(img_path)
+    if image is None:
+        continue
 
-    for shape in data["shapes"]:
-        points = [(int(x), int(y)) for x, y in shape["points"]]
-        draw.polygon(points, fill=255)
+    h, w = image.shape[:2]
+    mask = np.zeros((h, w), dtype=np.uint8)
 
-    out_name = file.replace(".json", ".png")
-    mask.save(os.path.join(mask_out, out_name))
+    # --------------------------------------------------
+    # READ YOLO LABELS (BBOX OR POLYGON)
+    # --------------------------------------------------
+    if os.path.exists(label_path):
+        with open(label_path, "r") as f:
+            for line in f:
+                values = list(map(float, line.strip().split()))
+                class_id = int(values[0])
+                coords = values[1:]
 
-print("✅ Masks converted to PNG")
+                # CASE 1: YOLOv8 segmentation (polygon)
+                if len(coords) > 4:
+                    points = np.array(coords).reshape(-1, 2)
+                    points[:, 0] *= w
+                    points[:, 1] *= h
+                    points = points.astype(np.int32)
+                    cv2.fillPoly(mask, [points], 1)
+
+                # CASE 2: YOLO bounding box
+                else:
+                    xc, yc, bw, bh = coords
+
+                    x1 = int((xc - bw / 2) * w)
+                    y1 = int((yc - bh / 2) * h)
+                    x2 = int((xc + bw / 2) * w)
+                    y2 = int((yc + bh / 2) * h)
+
+                    x1 = max(0, x1)
+                    y1 = max(0, y1)
+                    x2 = min(w, x2)
+                    y2 = min(h, y2)
+
+                    cv2.rectangle(mask, (x1, y1), (x2, y2), 1, -1)
+
+    # --------------------------------------------------
+    # SAVE IMAGE & MASK
+    # --------------------------------------------------
+    cv2.imwrite(os.path.join(OUT_IMG_DIR, img_name), image)
+    cv2.imwrite(
+        os.path.join(OUT_MASK_DIR, os.path.splitext(img_name)[0] + ".png"),
+        mask * 255
+    )
+
+print("✅ YOLO annotations successfully converted to U-Net masks")
