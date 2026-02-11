@@ -1,7 +1,6 @@
 # Dataset folders
 Data/
 masks/
-runs/
 unet_data/
 Yolo_train_data/
 aircrafts blades/
