@@ -4,6 +4,8 @@ masks/
 unet_data/
 Yolo_train_data/
 aircrafts blades/
+yolo_data/
+yolo_classify_data/
 
 # # Model weights (optional)
 # *.pth
