@@ -6,7 +6,7 @@ detector = YOLO("runs/detect/train9/weights/best.pt")  # Your current detection 
 classifier = YOLO("runs/classify/defect_classifier/weights/best.pt")  # Your NEW classification model
 
 # 2. LOAD IMAGE
-image_path = "sample.jpg"
+image_path = "/Users/vivek/Projects/Aircraft_Defect_Detection/aircrafts blades/test/images/40_7_JPG_jpg.rf.5e4449bd214b0b872aad2f4b7dc34f78.jpg"
 img = cv2.imread(image_path)
 original_img = img.copy()
 
