@@ -3,7 +3,7 @@ from ultralytics import YOLO
 
 # 1. LOAD BOTH MODELS
 detector = YOLO("runs/detect/train9/weights/best.pt")  # Your current detection model
-classifier = YOLO("runs/classify/train5/weights/best.pt")  # Your NEW classification model
+classifier = YOLO("runs/classify/defect_classifier/weights/best.pt")  # Your NEW classification model
 
 # 2. LOAD IMAGE
 image_path = "sample.jpg"
