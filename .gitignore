@@ -6,6 +6,7 @@ Yolo_train_data/
 aircrafts blades/
 yolo_data/
 yolo_classify_data/
+Data2/
 
 # # Model weights (optional)
 # *.pth
