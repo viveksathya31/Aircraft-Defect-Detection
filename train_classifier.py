@@ -6,7 +6,7 @@ model = YOLO('yolov8m-cls.pt')
 
 # 2. Train the model
 results = model.train(
-    data='yolo_classify_data',  # Point to the folder containing train/val/test
+    data='Yolo_Classify_Data',  # Point to the folder containing train/val/test
     epochs=50,                  # 50 epochs is usually enough for classification
     imgsz=224,                  # Standard classification size (or use 256)
     batch=16,                   # Adjust based on your M4 memory
