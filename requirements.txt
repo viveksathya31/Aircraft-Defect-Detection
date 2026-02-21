@@ -1,0 +1,49 @@
+# Core Deep Learning
+torch
+torchvision
+torchaudio
+
+# YOLO (Ultralytics - for YOLOv8)
+ultralytics
+
+# Computer Vision
+opencv-python
+opencv-contrib-python
+scikit-image
+Pillow
+
+# Scientific Computing
+numpy
+scipy
+pandas
+matplotlib
+seaborn
+
+# Machine Learning Utilities
+scikit-learn
+tqdm
+
+# Image Annotation / Dataset Tools
+labelImg
+albumentations
+
+# GAN / Image-to-Image Translation
+torchmetrics
+
+# Model Evaluation
+pycocotools
+
+# Logging & Monitoring
+tensorboard
+wandb
+
+# Data Handling
+pyyaml
+requests
+
+# Jupyter / Development
+notebook
+ipykernel
+
+# For PDF / Research utilities (optional)
+pytube
