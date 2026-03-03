@@ -1,21 +1,18 @@
 from ultralytics import YOLO
 
-# 1. Load a pre-trained classification model
-# 'yolov8m-cls.pt' is the Medium version (Good balance of speed/accuracy)
-model = YOLO('yolov8m-cls.pt') 
+# Load pretrained classification backbone
+model = YOLO("yolov8m-cls.pt")  # Medium model (good balance)
 
-# 2. Train the model
+# Train on converted dataset
 results = model.train(
-    data='Yolo_Classify_Data',  # Point to the folder containing train/val/test
-    epochs=50,                  # 50 epochs is usually enough for classification
-    imgsz=224,                  # Standard classification size (or use 256)
-    batch=16,                   # Adjust based on your M4 memory
-    device='mps',               # Use Apple Silicon GPU
-    project='runs/classify',    # Where to save results
-    name='defect_classifier',   # Name of this run
-    patience=10                 # Stop early if no improvement
+    data="Yolo_Classify_Data_v2",   # <-- your converted dataset
+    epochs=50,
+    imgsz=224,
+    batch=16,
+    device="mps",                   # use Apple GPU
+    project="runs/classify",
+    name="classifier_from_detection",
+    patience=10
 )
-
-
 
 print("Training complete.")
