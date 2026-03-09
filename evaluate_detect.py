@@ -17,7 +17,7 @@ from tqdm import tqdm
 # -----------------------------
 # CONFIG
 # -----------------------------
-# Make sure this points to your trained detection model
+
 MODEL_PATH = "runs/detect/train9/weights/best.pt" 
 
 TEST_IMAGES_DIR = "Yolo_Detection_Data/test/images"
@@ -56,15 +56,14 @@ for img_file in tqdm(image_files):
     label_path = os.path.join(TEST_LABELS_DIR, label_file)
 
     if not os.path.exists(label_path):
-        # Skip images with no label (background images) if you only want to test defects
+
         continue
         
     with open(label_path, "r") as f:
         lines = f.readlines()
         if not lines:
             continue
-        # Take the first object's class as the "True" class for the whole image
-        # (Assuming 1 major defect per crop)
+
         true_cls_id = int(lines[0].split()[0])
         y_true.append(true_cls_id)
 
@@ -75,25 +74,16 @@ for img_file in tqdm(image_files):
 
     # Check if any object was detected
     if len(result.boxes) > 0:
-        # Get the box with the highest confidence
-        # result.boxes.cls contains the class IDs of detected objects
-        # result.boxes.conf contains the confidence scores
         best_box_idx = result.boxes.conf.argmax() 
         pred_cls_id = int(result.boxes.cls[best_box_idx].item())
         y_pred.append(pred_cls_id)
     else:
-        # If nothing detected, we can mark it as a specific "background" class 
-        # OR simply skip it. For this confusion matrix, let's mark it as -1 
-        # (which we will filter out or handle as "Missed Detection")
         y_pred.append(-1) 
 
 # Convert to numpy arrays
 y_true = np.array(y_true)
 y_pred = np.array(y_pred)
 
-# Filter out missed detections (-1) if you strictly want to compare Class vs Class
-# Or map -1 to a "Background" class if you prefer.
-# For now, we only calculate metrics on images where SOMETHING was detected vs GT.
 valid_mask = y_pred != -1
 if np.sum(~valid_mask) > 0:
     print(f"⚠️ Warning: Model missed detections on {np.sum(~valid_mask)} images.")
@@ -101,11 +91,9 @@ if np.sum(~valid_mask) > 0:
 # -----------------------------
 # METRICS & REPORT
 # -----------------------------
-# Use model.names to get the ordered list of class names
+
 ordered_names = [class_names[i] for i in range(len(class_names))]
 
-# Only evaluating where we made a prediction (or you can map -1 to a 'Background' class)
-# Here we filter to keep the lengths matching for scikit-learn
 y_true_filtered = y_true[valid_mask]
 y_pred_filtered = y_pred[valid_mask]
 

@@ -2,7 +2,9 @@ import os
 import cv2
 import numpy as np
 from ultralytics import YOLO
-from sklearn.metrics import classification_report, accuracy_score
+from sklearn.metrics import classification_report, accuracy_score, confusion_matrix # Added confusion_matrix
+import matplotlib.pyplot as plt # Added for plotting
+import seaborn as sns # Added for visualization
 from tqdm import tqdm
 
 # -----------------------------
@@ -148,10 +150,32 @@ print("\n📊 FULL PIPELINE RESULTS")
 print(f"Matched Samples: {len(y_true)}")
 print(f"Accuracy: {accuracy:.4f}")
 
+# Map class names safely depending on your classes
+target_labels = [class_names[i] for i in sorted(list(set(y_true) | set(y_pred)))]
+
 print("\n📋 Classification Report")
 print(classification_report(
     y_true,
     y_pred,
-    target_names=[class_names[i] for i in range(len(class_names))],
+    target_names=target_labels,
     zero_division=0
 ))
+
+# -----------------------------
+# CONFUSION MATRIX
+# -----------------------------
+cm = confusion_matrix(y_true, y_pred)
+
+plt.figure(figsize=(10, 8))
+sns.heatmap(cm, annot=True, fmt='d', cmap='Blues',
+            xticklabels=target_labels,
+            yticklabels=target_labels)
+plt.xlabel('Predicted Labels')
+plt.ylabel('True Labels')
+plt.title('Confusion Matrix: Detection + Classification Pipeline')
+plt.tight_layout()
+
+# Save the plot
+cm_filename = 'confusion_matrix.png'
+plt.savefig(cm_filename, dpi=300)
+print(f"\n✅ Confusion matrix saved as '{cm_filename}'")
