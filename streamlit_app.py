@@ -18,16 +18,16 @@ def load_models():
 
 detector, classifier = load_models()
 
-# --- SIDEBAR / UPLOAD ---
+
 st.sidebar.header("Upload Image")
 uploaded_file = st.sidebar.file_uploader("Choose an aircraft image...", type=["jpg", "jpeg", "png"])
 
 if uploaded_file is not None:
-    # Convert uploaded file to OpenCV format
+
     file_bytes = np.asarray(bytearray(uploaded_file.read()), dtype=np.uint8)
     img = cv2.imdecode(file_bytes, 1)
-    # OpenCV uses BGR, but Streamlit/PIL use RGB. 
-    # We'll keep 'img' as BGR for YOLO/CV2 and create an RGB version for display.
+
+
     display_img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     output_img = display_img.copy()
 
